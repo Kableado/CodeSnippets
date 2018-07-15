@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<head>
+<title>Checkbox and Radiobutton test</title>
+</head>
+<body>
+<form id="frm">
+<p>Probar con Checkbox</p>
+<p>
+<input type="checkbox" checked id="chkI0" />
+<input type="checkbox" id="chkI1" />
+<input type="checkbox" id="chkI2" />
+<input type="checkbox" id="chkI3" />
+<input type="button" onclick="probarI();" value="Test">
+</p>
+<p>Probar con Radio</p>
+<p>
+<input type="radio" id="chkJ0" />
+<input type="radio" id="chkJ1" />
+<input type="radio" id="chkJ2" />
+<input type="radio" id="chkJ3" />
+<input type="button" onclick="probarJ();" value="Test">
+</p>
+</form>
+
+<script type="text/javascript" language="javascript">
+	function probarI(){
+		
+		alert("Checked: "+frm.chkI0.checked+" "+
+						  frm.chkI1.checked+" "+
+						  frm.chkI2.checked+" "+
+						  frm.chkI3.checked+" "+
+						  " ");
+		
+		if(	frm.chkI0.checked && 
+			frm.chkI1.checked && 
+			frm.chkI2.checked && 
+			frm.chkI3.checked )
+		{
+			alert("All ON!");
+		}
+	}
+	function probarJ(){
+		
+		alert("Checked: "+frm.chkJ0.checked+" "+
+						  frm.chkJ1.checked+" "+
+						  frm.chkJ2.checked+" "+
+						  frm.chkJ3.checked+" "+
+						  " ");
+		
+		if(	frm.chkI0.checked && 
+			frm.chkI1.checked && 
+			frm.chkI2.checked && 
+			frm.chkI3.checked )
+		{
+			alert("All ON!");
+		}
+	}
+</script>
+</body>
