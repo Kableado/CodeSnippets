@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>ElementFading</title>
+	<script>
+
+		function IdElementFadeIn(idElement, fadeTime) {
+			if (!fadeTime) { fadeTime = 150; }
+
+			var el = document.getElementById(idElement);
+			if (el.style.display !== "none") {
+				return;
+			}
+
+			try {
+				el.style.opacity = 0;
+				el.style.display = "block";
+
+				var first = +new Date();
+				var tick = function () {
+					try {
+						var opacity = (new Date() - first) / fadeTime;
+						if (opacity > 1) {
+							opacity = 1;
+						}
+						el.style.opacity = opacity;
+						if (opacity < 1) {
+							(window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+						} else {
+							el.style.display = "block";
+							el.style.opacity = "";
+						}
+					} catch (e) {
+						el.style.display = "block";
+						el.style.opacity = "";
+					}
+				};
+
+				tick();
+			} catch (e) {
+				el.style.display = "block";
+				el.style.opacity = "";
+			}
+		}
+
+		function IdElementFadeOut(idElement, fadeTime) {
+			if (!fadeTime) { fadeTime = 150; }
+
+			var el = document.getElementById(idElement);
+			if (el.style.display === "none") {
+				return;
+			}
+
+			try {
+			el.style.opacity = 1;
+			el.style.display = "block";
+
+				var first = +new Date();
+				var tick = function () {
+					try {
+						var opacity = 1.0 - (new Date() - first) / fadeTime;
+						if (opacity < 0) {
+							opacity = 0;
+						}
+						el.style.opacity = opacity;
+						if (opacity > 0.01) {
+							(window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+						} else {
+							el.style.display = "none";
+							el.style.opacity = "";
+						}
+					} catch (e) {
+						el.style.display = "none";
+						el.style.opacity = "";
+					}
+				};
+
+				tick();
+			} catch (e) {
+				el.style.display = "none";
+				el.style.opacity = "";
+			}
+		}
+
+	</script>
+	<style>
+	.container {background-color: black; padding: 20px;}
+	.element {background-color: red; padding: 20px;}
+	.element textarea {width: 100%; box-sizing: border-box; resize: vertical;}
+	</style>
+</head>
+	<div class="container">
+		<div class="element" id="caja">
+			<textarea>Test</textarea>
+		</div>
+	</div>
+	<button onclick="IdElementFadeIn('caja',500);">FadeIn</button>
+	<button onclick="IdElementFadeOut('caja',500);">FadeOut</button>
+
+</html>
