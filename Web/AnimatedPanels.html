@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<head>
+<title>Paneles Animados</title>
+<style type="text/css">
+#Floater
+{
+	filter: alpha(opacity=40);
+	background-color:rgb(255,255,255);
+	background-color:rgba(255,255,255,0.4);
+}
+</style>
+<script type="text/javascript" language="javascript">
+
+function AniLineal(idobj,iddest,t){
+	
+	// Obtener posicion y tamanho inicial
+	this.obj=document.getElementById(idobj);
+	this.topOrig=parseInt(this.obj.style.top);
+	this.leftOrig=parseInt(this.obj.style.left);
+	this.widthOrig=parseInt(this.obj.style.width);
+	this.heightOrig=parseInt(this.obj.style.height);
+	
+	// Obtener posicion y tamanho final
+	objdest=document.getElementById(iddest);
+	this.topDest=parseInt(objdest.style.top);
+	this.leftDest=parseInt(objdest.style.left);
+	this.widthDest=parseInt(objdest.style.width);
+	this.heightDest=parseInt(objdest.style.height);
+	
+	// Precalcular
+	this.time=t;
+	this.t=0;
+	
+	this.Frame=function(ft){
+		var delta=(this.t+0.0)/this.time;
+		if(delta>1.0){
+			delta=1.0;
+		}
+		this.obj.style.top=(this.topOrig+delta*(this.topDest-this.topOrig))+"px";
+		this.obj.style.left=(this.leftOrig+delta*(this.leftDest-this.leftOrig))+"px";
+		this.obj.style.width=(this.widthOrig+delta*(this.widthDest-this.widthOrig))+"px";
+		this.obj.style.height=(this.heightOrig+delta*(this.heightDest-this.heightOrig))+"px";
+		if(this.t>this.time){
+			return false;
+		}
+		this.t+=ft;
+		return true;
+	}
+}
+
+function Animador(fps){
+	this.objetos=new Array();
+	this.fps=30;
+	if(fps){
+		this.fps=fps;
+	}
+	this.ft=1000/this.fps;
+	
+	
+	
+	this.AnimarPanelSobre=function(idobj,iddest,t){
+		var obj=new AniLineal(idobj,iddest,t);
+		this.objetos.push(obj);
+	}
+	this.Frame=function(){
+		var i;
+		for(i=0;i<this.objetos.length;i++){
+			var obj=this.objetos[i];
+			if(!obj.Frame(this.ft)){
+				this.objetos.splice(i,1);
+				i--;
+			}
+		}
+		
+		
+		// Repetir
+        var _this = this;
+        setTimeout(function() { _this.Frame(); }, this.ft);
+	}
+}
+
+
+</script>
+</head>
+<body style="padding:0;background-color:rgb(0,0,0);color:rgb(220,220,220);">
+
+<div id="Uno" 
+	style="position:absolute;background-color:rgb(0,128,0);top:20px;left:100px;width:100px;height:100px;"
+	onclick="a.AnimarPanelSobre('Floater','Uno',500);" ></div>
+
+<div id="Dos" 
+	style="position:absolute;background-color:rgb(0,128,255);top:20px;left:500px;width:100px;height:100px;"
+	onclick="a.AnimarPanelSobre('Floater','Dos',500);" >
+</div>
+
+<div id="Tres" 
+	style="position:absolute;background-color:rgb(0,128,0);top:400px;left:100px;width:50px;height:100px;"
+	onclick="a.AnimarPanelSobre('Floater','Tres',500);" ></div>
+
+<div id="Cuatro" 
+	style="position:absolute;background-color:rgb(0,128,255);top:400px;left:500px;width:100px;height:50px;"
+	onclick="a.AnimarPanelSobre('Floater','Cuatro',500);" >
+</div>
+
+
+<div id="Cinco" 
+	style="position:absolute;background-color:rgb(0,128,0);top:200px;left:200px;width:200px;height:200px;"
+	onclick="a.AnimarPanelSobre('Floater','Cinco',500);" ></div>
+
+
+<div id="Floater" 
+	style="position:absolute;top:0px;left:0px;width:100px;height:100px;"></div>
+
+<script type="text/javascript" language="javascript">
+	var a=new Animador(60);
+	a.Frame();
+	
+</script>
+</body>
+<html>
