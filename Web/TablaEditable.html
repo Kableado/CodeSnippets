@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Tabla Editable</title>
+<style type="text/css">
+#TablaEditable {
+	border-collapse: collapse;
+	border: solid 1px #777777;
+}
+#TablaEditable th {
+	border: solid 1px #777777;
+	padding:0;
+	margin:0;
+}
+#TablaEditable td {
+	border: solid 1px #777777;
+	padding:0;
+	margin:0;
+}
+#TablaEditable input[type="text"]{
+	margin:0;
+}
+
+</style>
+<script type="text/javascript" language="javascript">
+
+
+function getParentTag(ctrl,tag) {
+    var parent = ctrl;
+    while (parent.tagName != tag) {
+        parent = parent.parentNode;
+    }
+    return (parent);
+}
+
+function TablaEditable_CambiaFoco(ctrl,x,y){
+    var fila = getParentTag(ctrl, "TR");
+    var celda = getParentTag(ctrl, "TD");
+    var tabla = getParentTag(ctrl, "TABLE");
+    var tbody = getParentTag(ctrl, "TBODY");
+	if(!tbody){
+		tbody=tabla;
+	}
+	
+	// Buscar nueva columna
+	var idxfila=0;
+	if(y=="first"){
+		idxfila=0;
+	}else 
+	if(y=="last"){
+		var nfils=0;
+		while(tabla.rows[nfils]!=null){nfils++;}
+		idxfila=nfils-1;
+	}else{
+		var idxfila = fila.rowIndex + Number(y);
+	}
+	var newfila = tabla.rows[idxfila];
+	if(!newfila ){
+		return;
+	}
+	
+	// Buscar nueva celda
+	var idxcelda=0;
+	if(x=="first"){
+		idxcelda=0;
+	}else 
+	if(x=="last"){
+		var ncols=0;
+		while(newfila.cells[ncols]!=null){ncols++;}
+		idxcelda=ncols-1;
+	}else{
+		var idxcelda = celda.cellIndex + Number(x);
+	}
+	var newcelda = newfila.cells[idxcelda];
+	if (!newcelda ) {
+		if(x>0){
+			TablaEditable_CambiaFoco(ctrl,"first",y+1);
+		}else
+		if(x<0){
+			TablaEditable_CambiaFoco(ctrl,"last",y-1);
+		}
+		return;
+	}
+	
+	// Buscar control al que darle el foco
+	newinput=newcelda.getElementsByTagName("INPUT")[0];
+	if (!newinput ) {
+		return;
+	}
+	newinput.focus();
+}
+
+function TablaEditable_Focus(ctrl){
+	// Establecer el estilo de las cajas de texto enfocadas
+    ctrl.style.padding = "0px";
+    ctrl.style.border = "solid 1px #000000";
+}
+
+function TablaEditable_Blur(ctrl){
+	// Establecer el estilo de las cajas de texto sin foco
+    ctrl.style.padding = "1px";
+    ctrl.style.border = "solid 0px #FFFFFF";
+}
+
+function TablaEditable_KeyDownRO(ctrl,event){
+	if (event.keyCode == 38) { // Arriba
+		TablaEditable_CambiaFoco(ctrl, 0, -1);
+	}
+	if (event.keyCode == 40) { // Abajo
+		TablaEditable_CambiaFoco(ctrl, 0, +1);
+	}
+	if (event.keyCode == 37 ) { // Izquierda
+		TablaEditable_CambiaFoco(ctrl, -1, 0);
+	}
+	if (event.keyCode == 39 || event.keyCode == 9) { // Derecha y tabular
+		TablaEditable_CambiaFoco(ctrl, +1, 0); 
+	}
+	return (false);
+}
+function TablaEditable_KeyDownRW(ctrl,event){
+	if (event.keyCode == 38) { // Arriba
+		TablaEditable_CambiaFoco(ctrl, 0, -1);
+		return (false);
+	}
+	if (event.keyCode == 40) { // Abajo
+		TablaEditable_CambiaFoco(ctrl, 0, +1);
+		return (false);
+	}
+	return (true);
+}
+
+function TablaEditable_InitRW(id){
+	var tabla=document.getElementById(id);
+	var j=0;
+	
+	while(tabla.rows[j]!=undefined){
+		var i=0;
+		var fila=tabla.rows[j];
+		
+		while(tabla.rows[j].cells[i]!=undefined){
+			var celda=tabla.rows[j].cells[i];
+			var input=celda.getElementsByTagName("input")[0];
+			
+			if(input!=undefined){
+				input.onfocus=function(){TablaEditable_Focus(this);};
+				input.onblur=function(){TablaEditable_Blur(this);};
+				input.onkeydown=function(){
+					return TablaEditable_KeyDownRW(this,window.event);
+				};
+				TablaEditable_Blur(input);
+			}
+			i+=1;
+		}
+		j+=1;
+	}
+}
+
+function TablaEditable_InitRO(id){
+	var tabla=document.getElementById(id);
+	var j=0;
+	
+	while(tabla.rows[j]!=undefined){
+		var i=0;
+		var fila=tabla.rows[j];
+		
+		while(tabla.rows[j].cells[i]!=undefined){
+			var celda=tabla.rows[j].cells[i];
+			var input=celda.getElementsByTagName("input")[0];
+			
+			if(input!=undefined){
+				input.onfocus=function(){TablaEditable_Focus(this);};
+				input.onblur=function(){TablaEditable_Blur(this);};
+				input.onkeydown=function(){
+					return TablaEditable_KeyDownRO(this,window.event);
+				};
+				TablaEditable_Blur(input);
+			}
+			i+=1;
+		}
+		j+=1;
+	}
+}
+
+</script>
+</head>
+<body >
+<table id="TablaEditable" >
+	<tbody>
+		<tr><th>Col 1</th><th>Col 2</th><th>Col 3</th></tr>
+		<tr>
+			<td><input type="text"></td>
+			<td><input type="text"></td>
+			<td><input type="text"></td>
+		</tr>
+		<tr>
+			<td><input type="text"></td>
+			<td><input type="text"></td>
+			<td><input type="text"></td>
+		</tr>
+		<tr>
+			<td><input type="text"></td>
+			<td><input type="text"></td>
+			<td><input type="text"></td>
+		</tr>
+	</tbody>
+</table>
+</body>
+<script type="text/javascript" language="javascript">
+	// Inicializar 
+	TablaEditable_InitRO("TablaEditable");
+	//TablaEditable_InitRW("TablaEditable");
+</script>
+</html>
