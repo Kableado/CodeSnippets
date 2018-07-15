@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Tabla con cabecera fija</title>
+<style type="text/css">
+#miContenedor{
+	position:relative;
+	overflow:hidden;
+	width:400px;
+}
+#miContenedor div#miSubContenedor{
+	overflow:auto;
+	width:400px;
+	height:200px;
+}
+#miContenedor th{
+	background-color:rgb(128,128,256);
+}
+
+</style>
+</head>
+<body>
+<div id="miContenedor">
+	<div id="miSubContenedor">
+		<table>
+			<thead>
+				  <tr>
+						<th>HEADER 1</th>
+						<th>HEADER 2</th>
+						<th>HEADER 3</th>
+						<th>HEADER 4</th>
+				  </tr>
+			</thead>
+			<tbody>
+				  <tr>
+						<td>content 1</td>
+						<td>content</td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 2</td>
+						<td>contentffffffffffffff </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr>
+						<td>content 3</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 4</td>
+						<td>content *************************************************</td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr>
+						<td>content 5</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 6</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr>
+						<td>content 7</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 8</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr>
+						<td>content 9</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 10</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr>
+						<td>content 11</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 12</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr>
+						<td>content 13</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+				  <tr class="alt">
+						<td>content 14</td>
+						<td>content </td>
+						<td>content </td>
+						<td>content </td>
+				  </tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+</body>
+<script language="javascript" type="text/javascript">
+
+
+/////////////////
+// TablaCabeceraFija
+// Crear una cabecera fija para las columnas de la tabla
+//      idcontenedor: ID del div conenedor superior.
+//          La tabla tiene que estar dentro de dos div contenedores.
+//          El primero envuelve y el segundo tiene los scrolls.
+// VAR: 11/4/2012
+function TablaCabeceraFija(idcontenedor) {
+	var contenedor = document.getElementById(idcontenedor);
+	if (contenedor == undefined)
+		return;
+	var tabla = contenedor.getElementsByTagName("table")[0];
+	if (tabla == undefined) {
+		return;
+	}
+	var subcontenedor = tabla.parentNode;
+
+	// Clonar la cabecera
+	var cabecera = tabla.cloneNode(false);
+	cabecera.id = cabecera.id + "_Cabecera";
+	var theo = tabla.getElementsByTagName("thead")[0];
+	if (theo == undefined) {
+		var tabla_ths = tabla.getElementsByTagName('th');
+		var the = document.createElement('thead');
+	} else {
+		var tabla_ths = theo.getElementsByTagName('th');
+		var the = theo.cloneNode(false);
+	}
+	var tboo = tabla.getElementsByTagName("tbody")[0];
+	if (theo != undefined) {
+		var tabla_ftr = tboo.getElementsByTagName('tr')[0];
+	} else {
+		var tabla_ftr = tboo.getElementsByTagName('tr')[1];
+	}
+	var tabla_tds = tabla_ftr.getElementsByTagName('td');
+	var tr = document.createElement('tr');
+	var trb = tabla_ftr.cloneNode(false);
+	for (var i = 0; i < tabla_ths.length; i++) {
+		var tho = tabla_ths[i];
+		if(tho==undefined){
+			alert("WTF");
+			continue;
+		}
+		var th = tho.cloneNode(false);
+		var div = document.createElement('div');
+		var cont = document.createTextNode(tho.innerText);
+
+		// Calcular tamanno
+		var width = tho.offsetWidth;
+		var height = tho.offsetHeight;
+		var thostyle = tho.currentStyle;
+		var tempval;
+		if (!thostyle) {
+			thostyle = getComputedStyle(tho, null);
+		}
+		if (thostyle.paddingLeft){
+			tempval = parseFloat(thostyle.paddingLeft);
+			if(tempval)
+				width -= tempval;
+		}
+		if (thostyle.paddingRight){
+			tempval = parseFloat(thostyle.paddingRight);
+			if(tempval)
+				width -= tempval;
+		}
+		if (thostyle.borderLeftWidth){
+			tempval = parseFloat(thostyle.borderLeftWidth);
+			if(tempval)
+				width -= tempval;
+		}
+		if (thostyle.paddingTop){
+			tempval = parseFloat(thostyle.paddingTop);
+			if(tempval)
+				height -= tempval;
+		}
+		if (thostyle.paddingBottom){
+			tempval = parseFloat(thostyle.paddingBottom);
+			if(tempval)
+				height -= tempval;
+		}
+		if (thostyle.borderTopWidth){
+			tempval = parseFloat(thostyle.borderTopWidth);
+			if(tempval)
+				height -= tempval;
+		}
+
+		// Establecer el tamanho
+		div.style.width = Math.abs(width) + "px";
+		div.style.height = Math.abs(height) + "px";
+
+		// Jerarquizar
+		div.appendChild(cont);
+		th.appendChild(div);
+		tr.appendChild(th);
+
+		// Elementos de la fila de tamannos
+		var tdb = tabla_tds[i].cloneNode(false);
+		var divb = document.createElement('div');
+		divb.style.width = String(width) + "px";
+		divb.style.height = "1px";
+		tdb.width = Math.abs(width) + "px";
+		tdb.height = "1px";
+		tdb.appendChild(divb);
+		trb.appendChild(tdb);
+	}
+	the.appendChild(tr);
+	tboo.appendChild(trb);
+	cabecera.appendChild(the);
+	var tbo = document.createElement('tbody');
+	cabecera.appendChild(tbo);
+	cabecera.style.position = "absolute";
+	cabecera.style.top = "0px";
+	cabecera.style.left = "0px";
+	contenedor.appendChild(cabecera);
+
+	// Bajar tabla para que la cabecera no ensombre la tabla
+	subcontenedor.style.marginTop = Number(cabecera.offsetHeight) + "px";
+	subcontenedor.style.height = (Number(subcontenedor.offsetHeight) -
+				Number(cabecera.offsetHeight)) + "px";
+
+	// Borrar cabecera original
+	if (theo != undefined) {
+		tabla.removeChild(theo);
+	} else {
+		var th = tabla.getElementsByTagName("th")[0];
+		if (th != undefined) {
+			var fila = th.parentNode;
+			tabla.removeChild(fila);
+		}
+	}
+
+	// Evento de scroll en el div padre
+	subcontenedor.onscroll = function() {
+		cabecera.style.left = String(-subcontenedor.scrollLeft) + "px";
+	};
+}
+
+TablaCabeceraFija("miContenedor");
+
+</script>
+</html>
