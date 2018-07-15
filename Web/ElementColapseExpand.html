@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>ElementCollapseExpand</title>
+	<script>
+	
+		function ElementVerticalScale_GetWrapper(element){
+			var wrapper = element.parentNode;
+			if (!wrapper.ElementVerticalScaler) {
+				// Add wrapper
+				var wrapper = document.createElement("div");
+				wrapper.ElementVerticalScaler = {Scale: (element.style.display !== "none") ? 1.0 : 0.0 };
+				element.parentNode.insertBefore(wrapper, element);
+				wrapper.appendChild(element);
+			}
+			return wrapper;
+		}
+		
+	
+		function ElementVerticalScale(element, scale) {
+			var wrapper = ElementVerticalScale_GetWrapper(element);
+			element.style.transformOrigin = "0% 0%";
+			if (scale <= 0.0) {
+				element.style.transform = "scaley(0.0)";
+				element.style.display = "none";
+				wrapper.style.display = "none";
+				wrapper.style.height = "0";
+				wrapper.ElementVerticalScaler.Scale = 0.0;
+			} else if (scale >= 1.0) {
+				element.style.transform = "scaley(1.0)";
+				element.style.display = "";
+				wrapper.style.display = "";
+				wrapper.style.height = "auto";
+				wrapper.ElementVerticalScaler.Scale = 1.0;
+			} else {
+				element.style.transform = "scaley(" + scale + ")";
+				element.style.display = "";
+				wrapper.style.display = "";
+				wrapper.style.height = (element.offsetHeight * scale) + "px";
+				wrapper.ElementVerticalScaler.Scale = scale;
+			}
+		}
+	
+		function IdElementVerticalScale(idElement, scale){
+			var element = document.getElementById(idElement);
+			ElementVerticalScale(element, scale);
+		}
+		
+		function IdElementVerticalExpand(idElement, fadeTime) {
+			if (!fadeTime) { fadeTime = 150; }
+
+			var el = document.getElementById(idElement);
+
+			try {
+				var wrapper = ElementVerticalScale_GetWrapper(el);
+				if (wrapper.ElementVerticalScaler.Scale >= 1.0) { return; }
+			
+				var first = +new Date() - (wrapper.ElementVerticalScaler.Scale * fadeTime);
+				var tick = function () {
+					try {
+						var scale = (new Date() - first) / fadeTime;
+						ElementVerticalScale(el, scale);
+						if (scale < 1) {
+							(window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+						}
+					} catch (e) {
+						ElementVerticalScale(el, 1.0);
+					}
+				};
+
+				tick();
+			} catch (e) {
+				ElementVerticalScale(el, 1.0);
+			}
+		}
+		
+		function IdElementVerticalCollapse(idElement, fadeTime) {
+			if (!fadeTime) { fadeTime = 150; }
+
+			var el = document.getElementById(idElement);
+
+			try {
+				var wrapper = ElementVerticalScale_GetWrapper(el);
+				if (wrapper.ElementVerticalScaler.Scale <= 0.0) { return; }
+			
+				var first = +new Date() - ((1.0 - wrapper.ElementVerticalScaler.Scale) * fadeTime);
+				var tick = function () {
+					try {
+						var scale = 1.0 - (new Date() - first) / fadeTime;
+						ElementVerticalScale(el, scale);
+						if (scale > 0.01) {
+							(window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+						}
+					} catch (e) {
+						ElementVerticalScale(el, 0.0);
+					}
+				};
+
+				tick();
+			} catch (e) {
+				ElementVerticalScale(el, 0.0);
+			}
+		}
+		
+	</script>
+	<style>
+	.container {background-color: green; padding: 20px;}
+	.element {background-color: red; padding: 20px;}
+	.element textarea {width: 100%; box-sizing: border-box; resize: vertical;}
+	</style>
+</head>
+	<div class="container">
+		<div class="element" id="caja">
+			<textarea>Test</textarea>
+		</div>
+	</div>
+	<button onclick="IdElementVerticalExpand('caja');">Expand</button>
+	<button onclick="IdElementVerticalCollapse('caja');">Collapse</button>
+	<button onclick="IdElementVerticalScale('caja', 0.5);">HalfSize</button>
+
+</html>
