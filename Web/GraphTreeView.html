@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=4, user-scalable=1">
+	<title>GraphTreeView</title>
+</head>
+
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+		font-family: sans-serif;
+		color: rgb(20, 20, 20);
+		background-color: white;
+	}
+
+	.GraphTreeView {
+		display: block;
+		width: 100%;
+		font-size: 0;
+		border: solid 1px rgb(127, 127, 127);
+		box-sizing: border-box;
+		margin-bottom: 10px;
+	}
+
+	.GraphTreeView--Item,
+	.GraphTreeView--ItemSelected {
+		width: 100%;
+		display: block;
+		font-size: 12px;
+		line-height: 20px;
+		height: 20px;
+		cursor: pointer;
+	}
+
+	.GraphTreeView--ItemSelected {
+		background-color: rgb(20, 20, 20);
+		color: rgb(220, 220, 220);
+	}
+
+	.GraphTreeView--ChildContainer {
+		display: block;
+		padding-left: 20px;
+	}
+
+	.GraphTreeView--Expander {
+		display: inline-block;
+		padding-right: 5px;
+		background: none;
+	}
+
+	.GraphTreeView--Expander:before {
+		display: block;
+		width: 20px;
+		height: 20px;
+		line-height: 20px;
+		content: "+";
+		text-align: center;
+		font-size: 12px;
+		background-color: rgb(127, 127, 127, 0.3);
+		cursor: pointer;
+	}
+
+	.GraphTreeView--Collapser {
+		display: inline-block;
+		padding-right: 5px;
+		background: none;
+	}
+
+	.GraphTreeView--Collapser:before {
+		display: block;
+		width: 20px;
+		height: 20px;
+		line-height: 20px;
+		content: "-";
+		text-align: center;
+		font-size: 12px;
+		background-color: rgb(127, 127, 127, 0.3);
+		cursor: pointer;
+	}
+</style>
+
+<body>
+	<h1>GraphTreeView</h1>
+	<div id="divContent"></div>
+	<input type="hidden" id="hidValue">
+	<script crossorigin="anonymous">
+		var CtrGraphTreeView = (function () {
+			var FindElement = function (element) {
+				if (typeof element == 'string' || element instanceof String) {
+					element = document.getElementById(element);
+				}
+				return element;
+			};
+
+			var FindNode = function (nodes, idNode) {
+				for (var i = 0, n = nodes.length; i < n; i++) {
+					if (nodes[i].IdNode == idNode) {
+						return nodes[i];
+					}
+				}
+				return null;
+			};
+
+			var FindLinks = function (links, idNode) {
+				var foundLinks = [];
+				for (var i = 0, n = links.length; i < n; i++) {
+					if (links[i].IdNodeParent == idNode) {
+						foundLinks.push(links[i]);
+					}
+				}
+				return foundLinks;
+			};
+
+			var RenderItem = function (ctx, text, idNode, path, idLink, container) {
+				var divItem = document.createElement('div');
+				divItem.className = "GraphTreeView--Item";
+				divItem.dataset.idNode = idNode;
+				divItem.dataset.path = path;
+				divItem.dataset.idLink = idLink;
+				divItem.CtrGraphTreeView = ctx;
+				divItem.onmousedown = Item_MouseDown;
+
+				var divItemExpander = document.createElement('div');
+				divItemExpander.className = "GraphTreeView--Expander";
+				divItemExpander.CtrGraphTreeView = ctx;
+				divItemExpander.dataset.idNode = idNode;
+				divItemExpander.dataset.path = path;
+				divItemExpander.onmousedown = Expander_MouseDown;
+
+				var txtText = document.createTextNode(text);
+
+				var divChildContainer = document.createElement('div');
+				divChildContainer.className = "GraphTreeView--ChildContainer";
+				divChildContainer.expanded = false;
+				divChildContainer.style.display = "none";
+
+				divItem.divChildContainer = divChildContainer;
+				divItemExpander.divChildContainer = divChildContainer;
+
+				divItem.appendChild(divItemExpander);
+				divItem.appendChild(txtText);
+				container.appendChild(divItem);
+				container.appendChild(divChildContainer);
+				return divItem;
+			};
+
+			var RenderRoot = function (ctx, idNode) {
+				var node = FindNode(ctx.nodes, idNode);
+				return RenderItem(ctx, node.Text, idNode, "", "", ctx.element);
+			};
+
+			var RenderChilds = function (ctx, idNode, path, container) {
+				var links = FindLinks(ctx.links, idNode);
+				for (var i = 0, n = links.length; i < n; i++) {
+					var newPath = path;
+					if (path.length == 0) { newPath = "" + links[i].IdLink; }
+					else {
+						newPath = newPath + ":" + links[i].IdLink;
+					}
+					RenderItem(ctx, links[i].Text, links[i].IdNodeChild, newPath, links[i].IdLink, container);
+				}
+			}
+
+			var SelectItem = function (ctx, item) {
+				if (ctx.selectedItem) {
+					ctx.selectedItem.className = "GraphTreeView--Item";
+				}
+				ctx.selectedItem = item;
+				ctx.selectedItem.className = "GraphTreeView--ItemSelected";
+				ctx.valueElement.value = ctx.selectedItem.dataset.path;
+			}
+
+			var ToggleExpander = function(ctx, expander){
+				if (expander.divChildContainer.style.display == "none") {
+					expander.className = "GraphTreeView--Collapser";
+					expander.divChildContainer.style.display = "";
+					if (!expander.divChildContainer.expanded) {
+						RenderChilds(ctx, expander.dataset.idNode, expander.dataset.path, expander.divChildContainer);
+						expander.divChildContainer.expanded = true;
+					}
+				} else {
+					expander.className = "GraphTreeView--Expander";
+					expander.divChildContainer.style.display = "none";
+				}
+			}
+
+			var Expander_MouseDown = function () {
+				ToggleExpander(this.CtrGraphTreeView, this);
+				event.stopPropagation();
+			};
+
+			var Item_MouseDown = function () {
+				SelectItem(this.CtrGraphTreeView, this);
+				event.stopPropagation();
+			};
+
+			var InitializeControl = function (element, valueElement, nodes, links, idNode) {
+				element = FindElement(element);
+				valueElement = FindElement(valueElement);
+				if (element.CtrGraphTreeView) { return; }
+
+				element.CtrGraphTreeView = {};
+				element.CtrGraphTreeView.element = element;
+				element.CtrGraphTreeView.valueElement = valueElement;
+				element.CtrGraphTreeView.nodes = nodes;
+				element.CtrGraphTreeView.links = links;
+				element.CtrGraphTreeView.selectedItem = null;
+
+				element.className = "GraphTreeView";
+
+				element.CtrGraphTreeView.root = RenderRoot(element.CtrGraphTreeView, idNode);
+			};
+
+			var GetValue = function (element) {
+				element = FindElement(element);
+				if (!element.CtrGraphTreeView) { return null; }
+				return element.CtrGraphTreeView.valueElement.value;
+			};
+
+			var SetValue = function (element, value) {
+				element = FindElement(element);
+				if (!element.CtrGraphTreeView) { return null; }
+				if (value === "") {
+					SelectItem(element.CtrGraphTreeView, element.CtrGraphTreeView.root);
+					return;
+				}
+				var path = value.split(":");
+				var item = element.CtrGraphTreeView.root;
+				var childs = null;
+				for(var i=0,n=path.length;i<n;i++){
+					var idLink = path[i];
+					if(!item.divChildContainer.expanded){
+						ToggleExpander(element.CtrGraphTreeView, item.children[0]);
+					}
+					childs = item.divChildContainer.children;
+					for(var j=0,n2=childs.length;j<n2;j++){
+						var child = childs[j];
+						if((child.className==="GraphTreeView--Item" || child.className==="GraphTreeView--ItemSelected") && child.dataset.idLink == idLink){
+							item = child;
+							break;
+						}
+					}
+				}
+				SelectItem(element.CtrGraphTreeView, item);
+			};
+
+			// Exportar metodos publicos
+			return {
+				InitializeControl: InitializeControl,
+				SetValue: SetValue,
+				GetValue: GetValue,
+			};
+		})();
+
+		CtrGraphTreeView.InitializeControl(
+			"divContent", // element
+			"hidValue", // valueElement
+			[ // nodes
+				{ "IdNode": 1, "Text": "Node1" },
+				{ "IdNode": 2, "Text": "Node2" },
+				{ "IdNode": 3, "Text": "Node3" },
+			],
+			[ // links
+				{ "IdLink": 1, "IdNodeParent": 1, "IdNodeChild": 2, "Text": "To_Node2" },
+				{ "IdLink": 2, "IdNodeParent": 1, "IdNodeChild": 3, "Text": "To_Node3" },
+				{ "IdLink": 3, "IdNodeParent": 2, "IdNodeChild": 1, "Text": "To_Node1" },
+			],
+			1); // idNode
+	</script>
+	<!-- Test the fuck out of it -->
+	<input type="text" id="txtValueTest" />
+	<button
+		onclick="document.getElementById('txtValueTest').value=CtrGraphTreeView.GetValue('divContent');">GetValue</button>
+	<button
+		onclick="CtrGraphTreeView.SetValue('divContent', document.getElementById('txtValueTest').value);">SetValue</button>
+</body>
+
+</html>
