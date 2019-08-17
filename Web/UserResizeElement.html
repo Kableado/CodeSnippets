@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>UserResizeElement</title>
+	<style>
+	* { border: 0; box-sizing: border-box; font-size: 10px; font-family: arial, sans; padding: 0; margin: 0; font-weight: normal; }
+	h1 { font-size: 20px; font-weight: bold; margin-bottom: 15px; }
+	h2 { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+	h3 { font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+	h4 { font-size: 10px; font-weight: bold; margin-bottom: 5px; }
+	p { font-size: 10px; font-weight: normal; margin-bottom: 5px; }
+	.divColumnsRow {
+		white-space: nowrap;
+		font-size: 0;
+		vertical-align: top;
+	}
+	.divColumn {
+		display: inline-block;
+		box-sizing: border-box;
+		vertical-align: top;
+		position: relative;
+	}
+	.width33percent {
+		width: 33%;
+	}
+	.width100percent {
+		width: 100%;
+	}
+	.textArea {
+		width: 100%;
+		box-sizing: border-box;
+		border: solid 1px rgba(0,0,0,0.3);
+	}
+	.divResizableContainer {
+		position: relative;
+	}
+	.divResizer {
+		background-color: rgba(0,0,0,0.3);
+		position:absolute;
+		bottom: -5px;
+		left: 0;
+		right: 0;
+		height: 5px;
+		cursor: n-resize;
+		border-bottom: solid 1px rgba(0,0,0,0.5);
+		border-radius: 0 0 3px 3px;
+	}
+	</style>
+</head>
+<body>
+<div class="divColumn width100percent">
+	<h1>UserResizeElement</h1>
+	<div class="divColumnsRow">
+		<div class="divColumn width33percent">Test</div>
+		<div class="divColumn width33percent"><textarea id="txtText1" class="textArea" style="height: 100px;" ></textarea></div>
+		<div class="divColumn width33percent"><textarea id="txtText2" class="textArea" style="height: 50px;" ></textarea></div>
+	</div>
+	<h1>UserResizeElement</h1>
+</div>
+<div class="divColumn width100percent">
+	<h1>UserResizeElement</h1>
+	<div class="divColumnsRow">
+		<div class="divColumn width33percent">Test</div>
+		<div class="divColumn width33percent"><textarea id="txtText3" class="textArea" style="height: 100px;" ></textarea></div>
+		<div class="divColumn width33percent"><textarea id="txtText4" class="textArea" style="height: 50px;" ></textarea></div>
+	</div>
+	<h1>UserResizeElement</h1>
+</div>
+<script>
+var UserResizableElement = (function(){
+
+	var FindElement = function (element) {
+		if (typeof element == 'string' || element instanceof String) {
+			element = document.getElementById(element);
+		}
+		return element;
+	};
+	
+	var AddSibling = function(element, elementToAdd) {
+		if(element.nextSibling){
+			element.parentNode.insertBefore(elementToAdd, element.nextSibling);
+		}else{
+			element.parentNode.appendChild(elementToAdd);
+		}
+	};
+	
+	var AddParent = function(element, newParentToAdd) {
+		element.parentNode.replaceChild(newParentToAdd, element);
+		newParentToAdd.appendChild(element);
+	}
+	
+	var Resizer_DragStart = function(e) {
+		this.StartY = e.clientY;
+		this.StartResizerTop = this.divResizer.offsetTop;
+		this.StartHeight = this.offsetHeight;
+		this.NewHeight = this.offsetHeight;
+		document.addEventListener('mousemove', this.bindedResizer_DragMove, false);
+		document.addEventListener('mouseup', this.bindedResizer_DragEnd, false);
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	};
+	
+	var Resizer_DragMove = function(e) {
+		var delta = (e.clientY - this.StartY);
+		this.NewHeight = this.StartHeight + delta;
+		if(this.NewHeight < this.minHeight) { this.NewHeight = this.minHeight; }
+		this.style.height = this.NewHeight + "px";
+		this.divResizer.style.top = ((this.StartResizerTop - this.StartHeight) + this.NewHeight) + "px";
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	};
+	
+	var Resizer_DragEnd = function(e) {
+		document.removeEventListener('mousemove', this.bindedResizer_DragMove, false);
+		document.removeEventListener('mouseup', this.bindedResizer_DragEnd, false);
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	};
+	
+	var Init = function(element, minHeight) {
+		if(!minHeight){ minHeight = 10; }
+		element = FindElement(element);
+		element.style.resize = "none";
+		var divResizableContainer = document.createElement("div");
+		divResizableContainer.className = "divResizableContainer";
+		var divResizer = document.createElement("div");
+		divResizer.className = "divResizer";
+		
+		element.divResizableContainer = divResizableContainer;
+		element.divResizer = divResizer;
+		element.minHeight = minHeight;
+		
+		AddParent(element, divResizableContainer);
+		AddSibling(element, divResizer);
+		element.style.height = element.offsetHeight + "px";
+		
+		element.bindedResizer_DragStart = Resizer_DragStart.bind(element);
+		element.bindedResizer_DragMove = Resizer_DragMove.bind(element);
+		element.bindedResizer_DragEnd = Resizer_DragEnd.bind(element);
+		element.divResizer.addEventListener('mousedown', element.bindedResizer_DragStart, false);
+	};
+
+	return {
+		Init: Init,
+	};
+})();
+
+UserResizableElement.Init("txtText1");
+UserResizableElement.Init("txtText2");
+UserResizableElement.Init("txtText3");
+UserResizableElement.Init("txtText4");
+
+</script>
+</body>
+<html>
