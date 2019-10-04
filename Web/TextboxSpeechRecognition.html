@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Web Speech Recording</title>
+	<style>
+	body {
+		margin: 5px;
+		padding: 0;
+	}
+	#Output{
+		position: absolute;
+		height: calc(100vh - 200px);
+		width: calc(100vw - 10px);
+		margin-bottom: 5px;
+		bottom: 0;
+		box-sizing: border-box;
+		border: solid 1px green;
+	}
+	
+	.SpeechRecognition--Container {
+		position: relative;
+		display: inline-block;
+	}
+	.SpeechRecognition--Button,
+	.SpeechRecognition--Button--Active {
+		position: absolute;
+		top: 0;
+		right: -20px;
+		width: 20px;
+		height: 20px;
+		line-height: 20px;
+		cursor: pointer;
+	}
+	.SpeechRecognition--Button:after{
+		content: "🎤";
+	}
+	.SpeechRecognition--Button--Active:after{
+		content: "🔴";
+		animation: recording 1.0s linear infinite;
+	}
+	@keyframes recording {
+		0% {
+			opacity: 0.3;
+		}
+		50% {
+			opacity: 1.0;
+		}
+		100% {
+			opacity: 0.3;
+		}
+	}
+	.SpeechRecognition--Button::selection,
+	.SpeechRecognition--Button--Active::selection{
+		background: transparent;
+	}
+	.SpeechRecognition--Button::-moz-selection,
+	.SpeechRecognition--Button--Active::-moz-selection{
+		background: transparent;
+	}
+	.SpeechRecognition--Bubble {
+		position: absolute;
+		top: 0;
+		right: 0;
+		background-color: white;
+		opacity: 0.5;
+	}
+	</style>
+</head>
+<body>
+<h1>Web Speech Recognition inside textbox</h1>
+<p>This currently only works on Chrome.</p>
+<ul>
+	<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition">https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition</a></li>
+	<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API">https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API</a></li>
+</ul>
+<input type="textbox" id="txtTest" />
+
+<script>
+
+var TextboxSpeechRecognition = (function(){
+
+	var FindElement = function (element) {
+		if (typeof element == 'string' || element instanceof String) {
+			element = document.getElementById(element);
+		}
+		return element;
+	};
+	
+	var AddSibling = function(element, elementToAdd) {
+		if(element.nextSibling){
+			element.parentNode.insertBefore(elementToAdd, element.nextSibling);
+		}else{
+			element.parentNode.appendChild(elementToAdd);
+		}
+	};
+	
+	var AddParent = function(element, newParentToAdd) {
+		element.parentNode.replaceChild(newParentToAdd, element);
+		newParentToAdd.appendChild(element);
+	}
+	
+	var SpeechToggle = function(){
+		if(this.SpeechRecognition.Running){
+			this.SpeechRecognition.Stop();
+			return;
+		}
+		this.SpeechRecognition.Bubble.innerHTML = "";
+		this.SpeechRecognition.Button.className = "SpeechRecognition--Button--Active";
+		this.SpeechRecognition.WebSpeechRecognition.start();
+		this.SpeechRecognition.Running = true;
+	}
+	var Stop = function (){
+		this.SpeechRecognition.Bubble.innerHTML = "";
+		this.SpeechRecognition.Button.className = "SpeechRecognition--Button";
+		this.SpeechRecognition.WebSpeechRecognition.stop();
+		this.SpeechRecognition.Running = false;
+	}
+
+	var Init = function(element, lang, continuous) {
+		window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+		if(!window.SpeechRecognition) { return; }
+		element = FindElement(element);
+		element.SpeechRecognition = {};
+		element.SpeechRecognition.WebSpeechRecognition = new window.SpeechRecognition();
+		element.SpeechRecognition.WebSpeechRecognition.maxAlternatives = 10;
+		element.SpeechRecognition.WebSpeechRecognition.lang = lang;
+		if (continuous) {
+			element.SpeechRecognition.WebSpeechRecognition.continuous = true;
+		}
+		element.SpeechRecognition.WebSpeechRecognition.onresult = function(event) {
+			var interimTranscript = "";
+			var finalTranscript = "";
+			var finalized = false;
+			for (let i = event.resultIndex, len = event.results.length; i < len; i++) {
+				var transcript = event.results[i][0].transcript;
+				if (event.results[i].isFinal) {
+					finalized = true;
+					finalTranscript += transcript;
+				} else {
+					interimTranscript += transcript;
+				}
+			}
+			if (finalized) {
+				if (!element.SpeechRecognition.WebSpeechRecognition.continuous) {
+					element.SpeechRecognition.Stop();
+				}
+				element.value += finalTranscript;
+			}else{
+				element.SpeechRecognition.Bubble.innerHTML = interimTranscript;
+			}
+		};
+		element.SpeechRecognition.Running = false;
+		element.SpeechRecognition.Stop = Stop.bind(element);
+		
+		var divSpeechButton = document.createElement("div");
+		divSpeechButton.className = "SpeechRecognition--Button";
+		//divSpeechButton.innerHTML = "🎤";
+		divSpeechButton.onclick = SpeechToggle.bind(element);
+		element.SpeechRecognition.Button = divSpeechButton;
+		
+		var divSpeechContainer = document.createElement("div");
+		divSpeechContainer.className = "SpeechRecognition--Container";
+		
+		var divSpeechBubble = document.createElement("div");
+		divSpeechBubble.className = "SpeechRecognition--Bubble";
+		element.SpeechRecognition.Bubble = divSpeechBubble;
+		
+		AddParent(element, divSpeechContainer);
+		AddSibling(element, divSpeechBubble);
+		AddSibling(element, divSpeechButton);
+	};
+	return {
+		Init: Init,
+	};
+})();
+TextboxSpeechRecognition.Init("txtTest", "es", true);
+</script>
+</body>
+</html>

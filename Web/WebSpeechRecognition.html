@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Web Speech Recording</title>
+	<style>
+	body {
+		margin: 5px;
+		padding: 0;
+	}
+	#Output{
+		position: absolute;
+		height: calc(100vh - 200px);
+		width: calc(100vw - 10px);
+		margin-bottom: 5px;
+		bottom: 0;
+		box-sizing: border-box;
+		border: solid 1px green;
+	}
+	</style>
+</head>
+<body>
+<h1>Web Speech Recognition</h1>
+<p>This currently only works on Chrome.</p>
+<ul>
+	<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition">https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition</a></li>
+	<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API">https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API</a></li>
+</ul>
+<button id="btnSpeechRecognition" onclick="SpeechToggle()">Start</button>
+<div id="Output"></div>
+<script>
+	window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+	let running = false;
+	let finalTranscript = '';
+	let recognition = new window.SpeechRecognition();
+		
+	recognition.interimResults = true;
+	recognition.maxAlternatives = 10;
+	//recognition.continuous = true;
+	recognition.lang = "es";
+	recognition.onresult = (event) => {
+		let interimTranscript = '';
+		for (let i = event.resultIndex, len = event.results.length; i < len; i++) {
+			let transcript = event.results[i][0].transcript;
+			if (event.results[i].isFinal) {
+				Stop();
+				finalTranscript += transcript;
+			} else {
+				interimTranscript += transcript;
+			}
+		}
+		document.querySelector('#Output').innerHTML = finalTranscript + '<i style="color:#ddd;">' + interimTranscript + '</>';
+	}
+	function SpeechToggle(){
+		if(running){
+			Stop();
+			return;
+		}
+		document.querySelector('#btnSpeechRecognition').innerHTML = "Stop";
+		recognition.start();
+		running = true;
+	}
+	function Stop(){
+		document.querySelector('#btnSpeechRecognition').innerHTML = "Start";
+		recognition.stop();
+		running = false;
+	}
+</script>
+</body>
+</html>
