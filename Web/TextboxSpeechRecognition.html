@@ -124,12 +124,17 @@ var TextboxSpeechRecognition = (function(){
 		if(!window.SpeechRecognition) { return; }
 		element = FindElement(element);
 		element.SpeechRecognition = {};
-		element.SpeechRecognition.WebSpeechRecognition = new window.SpeechRecognition();
-		element.SpeechRecognition.WebSpeechRecognition.maxAlternatives = 10;
-		element.SpeechRecognition.WebSpeechRecognition.lang = lang;
-		if (continuous) {
-			element.SpeechRecognition.WebSpeechRecognition.continuous = true;
-		}
+        try {
+            element.SpeechRecognition.WebSpeechRecognition = new window.SpeechRecognition();
+            element.SpeechRecognition.WebSpeechRecognition.maxAlternatives = 10;
+            element.SpeechRecognition.WebSpeechRecognition.lang = lang;
+            if (continuous) {
+                element.SpeechRecognition.WebSpeechRecognition.continuous = true;
+            }
+        } catch (e) {
+            speechRecognitionDisabled = true;
+            return;
+        }
 		element.SpeechRecognition.WebSpeechRecognition.onresult = function(event) {
 			var interimTranscript = "";
 			var finalTranscript = "";
