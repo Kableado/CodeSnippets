@@ -21,8 +21,12 @@
 	}
 	
 	.SpeechRecognition--Container {
+		width: 0;
+		height: 0;
 		position: relative;
 		display: inline-block;
+		vertical-align: top;
+		z-index: 10000;
 	}
 	.SpeechRecognition--Button,
 	.SpeechRecognition--Button--Active {
@@ -80,7 +84,9 @@
 
 <script>
 
-var TextboxSpeechRecognition = (function(){
+var TextboxSpeechRecognition = (function () {
+
+	var speechRecognitionDisabled = false;
 
 	var FindElement = function (element) {
 		if (typeof element == 'string' || element instanceof String) {
@@ -88,22 +94,24 @@ var TextboxSpeechRecognition = (function(){
 		}
 		return element;
 	};
-	
-	var AddSibling = function(element, elementToAdd) {
-		if(element.nextSibling){
+
+	var AddSibling = function (element, elementToAdd) {
+		if (element.nextSibling) {
 			element.parentNode.insertBefore(elementToAdd, element.nextSibling);
-		}else{
+		} else {
 			element.parentNode.appendChild(elementToAdd);
 		}
 	};
-	
-	var AddParent = function(element, newParentToAdd) {
-		element.parentNode.replaceChild(newParentToAdd, element);
+
+	var AddParent = function (element, newParentToAdd) {
+		if (element.parentNode) {
+			element.parentNode.replaceChild(newParentToAdd, element);
+		}
 		newParentToAdd.appendChild(element);
 	}
-	
-	var SpeechToggle = function(){
-		if(this.SpeechRecognition.Running){
+
+	var SpeechToggle = function () {
+		if (this.SpeechRecognition.Running) {
 			this.SpeechRecognition.Stop();
 			return;
 		}
@@ -112,30 +120,31 @@ var TextboxSpeechRecognition = (function(){
 		this.SpeechRecognition.WebSpeechRecognition.start();
 		this.SpeechRecognition.Running = true;
 	}
-	var Stop = function (){
+	var Stop = function () {
 		this.SpeechRecognition.Bubble.innerHTML = "";
 		this.SpeechRecognition.Button.className = "SpeechRecognition--Button";
 		this.SpeechRecognition.WebSpeechRecognition.stop();
 		this.SpeechRecognition.Running = false;
 	}
 
-	var Init = function(element, lang, continuous) {
+	var Init = function (element, lang, continuous) {
 		window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-		if(!window.SpeechRecognition) { return; }
+		if (speechRecognitionDisabled) { return; }
+		if (!window.SpeechRecognition) { return; }
 		element = FindElement(element);
 		element.SpeechRecognition = {};
-        try {
-            element.SpeechRecognition.WebSpeechRecognition = new window.SpeechRecognition();
-            element.SpeechRecognition.WebSpeechRecognition.maxAlternatives = 10;
-            element.SpeechRecognition.WebSpeechRecognition.lang = lang;
-            if (continuous) {
-                element.SpeechRecognition.WebSpeechRecognition.continuous = true;
-            }
-        } catch (e) {
-            speechRecognitionDisabled = true;
-            return;
-        }
-		element.SpeechRecognition.WebSpeechRecognition.onresult = function(event) {
+		try {
+			element.SpeechRecognition.WebSpeechRecognition = new window.SpeechRecognition();
+			element.SpeechRecognition.WebSpeechRecognition.maxAlternatives = 10;
+			element.SpeechRecognition.WebSpeechRecognition.lang = lang;
+			if (continuous) {
+				element.SpeechRecognition.WebSpeechRecognition.continuous = true;
+			}
+		} catch (e) {
+			speechRecognitionDisabled = true;
+			return;
+		}
+		element.SpeechRecognition.WebSpeechRecognition.onresult = function (event) {
 			var interimTranscript = "";
 			var finalTranscript = "";
 			var finalized = false;
@@ -153,29 +162,28 @@ var TextboxSpeechRecognition = (function(){
 					element.SpeechRecognition.Stop();
 				}
 				element.value += finalTranscript;
-			}else{
+			} else {
 				element.SpeechRecognition.Bubble.innerHTML = interimTranscript;
 			}
 		};
 		element.SpeechRecognition.Running = false;
 		element.SpeechRecognition.Stop = Stop.bind(element);
-		
-		var divSpeechButton = document.createElement("div");
-		divSpeechButton.className = "SpeechRecognition--Button";
-		//divSpeechButton.innerHTML = "🎤";
-		divSpeechButton.onclick = SpeechToggle.bind(element);
-		element.SpeechRecognition.Button = divSpeechButton;
-		
+
 		var divSpeechContainer = document.createElement("div");
 		divSpeechContainer.className = "SpeechRecognition--Container";
-		
+
+		var divSpeechButton = document.createElement("div");
+		divSpeechButton.className = "SpeechRecognition--Button";
+		divSpeechButton.onclick = SpeechToggle.bind(element);
+		element.SpeechRecognition.Button = divSpeechButton;
+
 		var divSpeechBubble = document.createElement("div");
 		divSpeechBubble.className = "SpeechRecognition--Bubble";
 		element.SpeechRecognition.Bubble = divSpeechBubble;
-		
-		AddParent(element, divSpeechContainer);
-		AddSibling(element, divSpeechBubble);
-		AddSibling(element, divSpeechButton);
+
+		AddSibling(element, divSpeechContainer);
+		AddParent(divSpeechBubble, divSpeechContainer);
+		AddParent(divSpeechButton, divSpeechContainer);
 	};
 	return {
 		Init: Init,
